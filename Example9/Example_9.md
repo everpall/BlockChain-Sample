@@ -123,39 +123,73 @@ var cf= eth.contract([ { "constant": false, "inputs": [], "name": "checkGoalReac
  Contract는 모금활동의 마감일과 목표액을 설정하고, 마감일 시점에서 목표액이 달성되면
  계약의 소유자에게 모금된 이더를 송금한다. 목표액이 달성되지 못했다면 투자자자에게
  이더를 돌려주게 된다.
+ 
+(eth.accounts[0]) // 계약 소유자
+(eth.accounts[1]) // 투자자 A
+(eth.accounts[2]) // 투자자 B
  ```
  
  
 ### Scriipt
 
 ```
-personal.unlockAccount(eth.accounts[0]) // 계약 소유자
-personal.unlockAccount(eth.accounts[1]) // 투자자 A
-personal.unlockAccount(eth.accounts[2]) // 투자자 B
+C:\Users\Sunghyun>cd C:\Users\Sunghyun\AppData\Roaming\Ethereum Wallet\binaries\Geth\geth-windows-amd64-1.8.23-c9427004
 
-eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[1], value: web3.toWei(10, "ether")})
-eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[2], value: web3.toWei(10, "ether")})
+C:\Users\Sunghyun\AppData\Roaming\Ethereum Wallet\binaries\Geth\geth-windows-amd64-1.8.23-c9427004>geth --networkid "10" --nodiscover --datadir "home\eth_private_net" --rpc --rpcaddr "localhost" --rpcport "8545" --rpccorsdomain "*" --rpcapi "eth,net,web3,personal" --targetgaslimit "20000000" console 2>> home\eth_private_net\geth_err.log
+Welcome to the Geth JavaScript console!
 
-cf.fund.sendTransaction({from:eth.accounts[1], gas:5000000, value:web3.toWei(7,"ether")})
-cf.fund.sendTransaction({from:eth.accounts[2], gas:5000000, value:web3.toWei(3,"ether")})
+instance: Geth/v1.8.23-stable-c9427004/windows-amd64/go1.11.5
+coinbase: 0x072bbcdeafff45265e6d6e05225073c4c14e7e73
+at block: 0 (Thu, 01 Jan 1970 09:00:00 KST)
+ datadir: C:\Users\Sunghyun\AppData\Roaming\Ethereum Wallet\binaries\Geth\geth-windows-amd64-1.8.23-c9427004\home\eth_private_net
+ modules: admin:1.0 debug:1.0 eth:1.0 ethash:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0
 
-web3.fromWei(cf.investors(0)[1], "ether")
-web3.fromWei(cf.investors(1)[1], "ether")
-
-web3.fromWei(cf.totalAmount(), "ether")
-
-web3.fromWei(eth.getBalance(cf.address),"ether")
-
-web3.fromWei(eth.getBalance(eth.accounts[1]), "ether")
-
-
-cf.checkGoalReached.sendTransaction({from:eth.accounts[0], gas:5000000});
-
-cf.status()
-
-cf.ended()
-
-web3.fromWei(eth.getBalance(cf.address), "ether");
+> miner.start()
+null
+>
+>
+> personal.unlockAccount(eth.accounts[0])
+Unlock account 0x072bbcdeafff45265e6d6e05225073c4c14e7e73
+Passphrase:
+true
+> personal.unlockAccount(eth.accounts[1])
+Unlock account 0x9d6c0d9814b733ef7f0605d374061e7246402bcd
+Passphrase:
+true
+> personal.unlockAccount(eth.accounts[2])
+Unlock account 0x92e735452e40569f21299138965de184b67bd401
+Passphrase:
+true
+> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[1], value: web3.toWei(10, "ether")})
+"0xf0a534f114c3e3216417139ad30462ac9bcc53d1c353466cf0f4b14d663cbaf7"
+> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[2], value: web3.toWei(10, "ether")})
+"0x06c566be5e70ff213c068963b6f9656b6969e8d3a52228702e633e9172d9bc70"
+> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[1], value: web3.toWei(10, "ether")})
+"0x1f1fefe29ad412a3ad4ee296647a8d5c2cc5b8393d8e8cd32ac35a0254981453"
+> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[2], value: web3.toWei(10, "ether")})
+"0x9afc9c810528ddf90b49586f2fae407d12f2ccc5a4e677342cff2429644648bc"
+> cf.fund.sendTransaction({from:eth.accounts[1], gas:5000000, value:web3.toWei(7,"ether")})
+"0x25ff90f4cf79900d0a3bb7b00e87ff203a90efa36c46d1886ffd5c2aeb3742a9"
+> cf.fund.sendTransaction({from:eth.accounts[2], gas:5000000, value:web3.toWei(3,"ether")})
+"0x01ebeebc5ce8c614d90c2f5f964c248b452c6d5c663665c2097e6339c6301de2"
+> web3.fromWei(cf.investors(0)[1], "ether")
+7
+> web3.fromWei(cf.investors(1)[1], "ether")
+3
+> web3.fromWei(cf.totalAmount(), "ether")
+10
+> web3.fromWei(eth.getBalance(cf.address),"ether")
+10
+> web3.fromWei(eth.getBalance(eth.accounts[1]), "ether")
+12.999897429
+> cf.checkGoalReached.sendTransaction({from:eth.accounts[0], gas:5000000});
+"0xbc39414a066da3609aed5f633bc12ba14e7f1d9f5a8048e2b699773d11d891cc"
+> cf.status()
+"Campaign Succeeded"
+> cf.ended()
+true
+> web3.fromWei(eth.getBalance(cf.address), "ether");
+0
 ```
 
 ## 9-2 Managing names and addresses Contract
