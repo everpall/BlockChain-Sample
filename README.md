@@ -118,6 +118,14 @@ var cf= eth.contract([ { "constant": false, "inputs": [], "name": "checkGoalReac
  - _goalAmount : 목표액은 10ETH로 한다(wei) ( 미스티 월렛의 경우 10^19)
  - gas limit : 5000000
  
+ ```
+ 투자자는 Contract에 이더를 보내는 형태의 거래를 만드는 방법으로 투자를 할 수 있다.
+ Contract는 모금활동의 마감일과 목표액을 설정하고, 마감일 시점에서 목표액이 달성되면
+ 계약의 소유자에게 모금된 이더를 송금한다. 목표액이 달성되지 못했다면 투자자자에게
+ 이더를 돌려주게 된다.
+ ```
+ 
+ 
 ### Scriipt
 
 ```
