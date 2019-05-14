@@ -13,7 +13,7 @@ geth --networkid "10" --nodiscover --datadir "home\eth_private_net" --rpc --rpca
 
 ### 9-2 Crowd fundding
 
-```
+```c
 pragma solidity ^0.4.11;
 contract CrowdFunding {
 	// 투자자 구조체
