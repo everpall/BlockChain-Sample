@@ -133,63 +133,76 @@ var cf= eth.contract([ { "constant": false, "inputs": [], "name": "checkGoalReac
 ### Scriipt
 
 ```
-C:\Users\Sunghyun>cd C:\Users\Sunghyun\AppData\Roaming\Ethereum Wallet\binaries\Geth\geth-windows-amd64-1.8.23-c9427004
-
-C:\Users\Sunghyun\AppData\Roaming\Ethereum Wallet\binaries\Geth\geth-windows-amd64-1.8.23-c9427004>geth --networkid "10" --nodiscover --datadir "home\eth_private_net" --rpc --rpcaddr "localhost" --rpcport "8545" --rpccorsdomain "*" --rpcapi "eth,net,web3,personal" --targetgaslimit "20000000" console 2>> home\eth_private_net\geth_err.log
-Welcome to the Geth JavaScript console!
-
-instance: Geth/v1.8.23-stable-c9427004/windows-amd64/go1.11.5
-coinbase: 0x072bbcdeafff45265e6d6e05225073c4c14e7e73
-at block: 0 (Thu, 01 Jan 1970 09:00:00 KST)
- datadir: C:\Users\Sunghyun\AppData\Roaming\Ethereum Wallet\binaries\Geth\geth-windows-amd64-1.8.23-c9427004\home\eth_private_net
- modules: admin:1.0 debug:1.0 eth:1.0 ethash:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0
-
+일단 채굴부터 시작하자.
 > miner.start()
 null
->
->
+
+비밀번호 풀고..
 > personal.unlockAccount(eth.accounts[0])
 Unlock account 0x072bbcdeafff45265e6d6e05225073c4c14e7e73
 Passphrase:
 true
+
 > personal.unlockAccount(eth.accounts[1])
 Unlock account 0x9d6c0d9814b733ef7f0605d374061e7246402bcd
 Passphrase:
 true
+
 > personal.unlockAccount(eth.accounts[2])
 Unlock account 0x92e735452e40569f21299138965de184b67bd401
 Passphrase:
 true
-> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[1], value: web3.toWei(10, "ether")})
-"0xf0a534f114c3e3216417139ad30462ac9bcc53d1c353466cf0f4b14d663cbaf7"
-> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[2], value: web3.toWei(10, "ether")})
-"0x06c566be5e70ff213c068963b6f9656b6969e8d3a52228702e633e9172d9bc70"
+
+모금을 하려면 계정에 돈이 있어야 하므로..
 > eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[1], value: web3.toWei(10, "ether")})
 "0x1f1fefe29ad412a3ad4ee296647a8d5c2cc5b8393d8e8cd32ac35a0254981453"
+
 > eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[2], value: web3.toWei(10, "ether")})
 "0x9afc9c810528ddf90b49586f2fae407d12f2ccc5a4e677342cff2429644648bc"
+
+투자자 A가 7ETH, 투자자 B가 3ETH를 fund 함수를 통해 투자함. 
+sendTransaction으로 value값을 설정하면 이더를 송금하는 형태로 호출할 수 있음
 > cf.fund.sendTransaction({from:eth.accounts[1], gas:5000000, value:web3.toWei(7,"ether")})
 "0x25ff90f4cf79900d0a3bb7b00e87ff203a90efa36c46d1886ffd5c2aeb3742a9"
+
 > cf.fund.sendTransaction({from:eth.accounts[2], gas:5000000, value:web3.toWei(3,"ether")})
 "0x01ebeebc5ce8c614d90c2f5f964c248b452c6d5c663665c2097e6339c6301de2"
+
+투자자 A의 투자액 확인
 > web3.fromWei(cf.investors(0)[1], "ether")
 7
+
+투자자 B의 투자액 확인
 > web3.fromWei(cf.investors(1)[1], "ether")
 3
+
+총 추자액 확인, totalAmount가 10ETH이므로 목표액이 달성했다.
 > web3.fromWei(cf.totalAmount(), "ether")
 10
+
+계약 잔액 확인, 계약이 갖고 있는 이더의 액수 역시 같음을 알 수 있다.
 > web3.fromWei(eth.getBalance(cf.address),"ether")
 10
-> web3.fromWei(eth.getBalance(eth.accounts[1]), "ether")
-12.999897429
+
+소유자의 잔액 확인 (이전에 소유자의 잔액을 기록해두어야 함)
+> web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+7355.005293794
+
+목표액이 달성했다면 소유자에게 모금된 이더가 송금된다. 투자자에게는 뭘 주지도 않음..;ㅣ
 > cf.checkGoalReached.sendTransaction({from:eth.accounts[0], gas:5000000});
 "0xbc39414a066da3609aed5f633bc12ba14e7f1d9f5a8048e2b699773d11d891cc"
+
+상태확인
 > cf.status()
 "Campaign Succeeded"
+
 > cf.ended()
 true
+
+잔액확인
 > web3.fromWei(eth.getBalance(cf.address), "ether");
 0
+
 ```
 
 ## 9-2 Managing names and addresses Contract
@@ -310,33 +323,60 @@ Name Registry가 아닌 계약 con1을 생성하고, 이 계약을 어드레스�
 ### Script
 
 ```
-personal.unlockAccount(eth.accounts[0])
-nr.register.sendTransaction("con1", {from:eth.accounts[0], gas:5000000})
+> personal.unlockAccount(eth.accounts[0])
+Unlock account 0x072bbcdeafff45265e6d6e05225073c4c14e7e73
+Passphrase:
+true
 
-nr.numContracts()
+register 함수를 호출하고, name이 'con1'인 계약을 등록함.
+> nr.register.sendTransaction("con1", {from:eth.accounts[0], gas:5000000})
+"0x8c8b324eec5d69b777fd667ee0ece4909fa8b184565c538905859d67e4a1ad11"
 
-nr.getOwner("con1")
+numContracts의 값이 1이며, 'con1'의 소유자가 eth.account[0]이라는 것도 확인 가능
+> nr.numContracts()
+1
 
-nr.setAddr.sendTransaction("con1", "0x072bbCDEaFff45265E6d6e05225073c4C14e7e73", {from:eth.accounts[0], gas:5000000})
+eth.account[0] : 0x072bbCDEaFff45265E6d6e05225073c4C14e7e73
+> nr.getOwner("con1")
+"0x072bbcdeafff45265e6d6e05225073c4c14e7e73"
 
-nr.getAddr("con1")
+con1에 해당하는 계약의 어드레스 설정. 어드레스는 무엇을 사용하든 상관없음. 설정이 끝나면 getAddr 함수로 등록여부 확인
+> nr.setAddr.sendTransaction("con1", "0x072bbCDEaFff45265E6d6e05225073c4C14e7e73", {from:eth.accounts[0], gas:5000000})
+"0xfe7e60a9d197e4edd512e699f10becce2ed2a6702bd869d1e0691b5cada3b1b1"
 
-nr.setDescription.sendTransaction("con1", "this is for con1", {from:eth.accounts[0], gas:5000000})
+> nr.getAddr("con1")
+"0x072bbcdeafff45265e6d6e05225073c4c14e7e73"
 
-nr.getDescription("con1")
+계약에 대한 추가설명을 위해 setDescription 함수를 호출, 문자열 추가, getDescription 함수를 사용하여 확인
+> nr.setDescription.sendTransaction("con1", "this is for con1", {from:eth.accounts[0], gas:5000000})
+"0x419df485f99b6fe6f679224ab964d99abb870918bf637fa699ff78fe7a6ee66c"
 
-web3.toUtf8(nr.getDescription("con1"))
+> nr.getDescription("con1")
+"0x7468697320697320666f7220636f6e3100000000000000000000000000000000"
 
-nr.changeOwner.sendTransaction("con1", eth.accounts[1], {from:eth.accounts[0], gas:5000000})
+> web3.toUtf8(nr.getDescription("con1"))
+"this is for con1"
 
-nr.getOwner("con1")
+changerOwner를 호출하여 con1의 소유자를 eth.accounts[1]로 변경
+> nr.changeOwner.sendTransaction("con1", eth.accounts[1], {from:eth.accounts[0], gas:5000000})
+"0x015d84e36191aaaa0665ef0c373e1270322739769163fdf42ff28ebad5610fe9"
 
-personal.unlockAccount(eth.accounts[1])
-nr.unregister.sendTransaction("con1", {from:eth.accounts[1], gas:5000000})
+eth.account[1] : 0x9d6C0d9814b733EF7f0605D374061e7246402Bcd 확인
+> nr.getOwner("con1")
+"0x9d6c0d9814b733ef7f0605d374061e7246402bcd"
 
-nr.numContracts()
+> personal.unlockAccount(eth.accounts[1])
+Unlock account 0x9d6c0d9814b733ef7f0605d374061e7246402bcd
+Passphrase:
+true
 
-nr.getOwner()
+마지막으로, unregister 함수로 'con1'을 Name Registry에서 제거한다.
+> nr.unregister.sendTransaction("con1", {from:eth.accounts[1], gas:5000000})
+"0x2cbaea6a5be66a96cae2cb78b6f381e6b3c243c2bc40ca4da9cb7a205b13bc52"
+
+numContracts가 0이 되었음을 
+> nr.numContracts()
+0
 ```
 
 ## 9-3 Contract to control IoT switch
@@ -447,28 +487,55 @@ eth.accounts[2] : 이용자
 ### Script
 
 ```
-ss.owner()
+어드레스 확인
+> ss.owner()
+"0x072bbcdeafff45265e6d6e05225073c4c14e7e73"
 
-ss.iot()
+> ss.iot()
+"0x9d6c0d9814b733ef7f0605d374061e7246402bcd"
 
-ss.switches(0)
+switch 값 확인
+> ss.switches(0)
+["0x0000000000000000000000000000000000000000", 0, false]
 
-personal.unlockAccount(eth.accounts[2])
+> personal.unlockAccount(eth.accounts[2])
+Unlock account 0x92e735452e40569f21299138965de184b67bd401
+Passphrase:
+true
 
-ss.payToSwitch.sendTransaction({from:eth.accounts[2], gas:5000000, value:web3.toWei(1,"ether")})
+이용 등록(payToSwitch)
+이용자의 어드레스에서 1eth를 송금하도록 payToSwitch 함수를 호출하고 이용등록을 마침
+> ss.payToSwitch.sendTransaction({from:eth.accounts[2], gas:5000000, value:web3.toWei(1,"ether")})
+"0xfe65b59f433167fe22b602973816fb414821afdbad2f63d8c9c4e3ebd74e06c6"
 
-ss.switches(0)
+switches 매핑의 키 0에 등록된 정보를 확인할 수 있음. 
+switches에 등록된 값은 구조체 true임을 확인하고 IoT장치를 사용할 수 있게됨
+> ss.switches(0)
+["0x92e735452e40569f21299138965de184b67bd401", 1557828046, true]
 
-ss.numPaid()
+결제 횟수가 1임을 확인
+> ss.numPaid()
+1
 
-web3.fromWei(eth.getBalance(ss.address),"ether")
+계약 잔액 확인 1ETH
+> web3.fromWei(eth.getBalance(ss.address),"ether")
+1
 
+이용 종료 시 updateStatus 호출
+이용 종료 시각이 되면 IoT장치가 updateStatus함수를 호출한다. (수동임..;)
 //5분 후에 이용, IoT 장치도 gas 를 보낼 돈은 가지고 있어야함(주의)
-ss.updateStatus.sendTransaction(0, {from:eth.accounts[1], gas:5000000})
+> ss.updateStatus.sendTransaction(0, {from:eth.accounts[1], gas:5000000})
+"0x79bac33844196e33593f531b992f37e2997e8762c44301c3a99fd113c66e5b7c"
 
-ss.switches(0)
+스테이터스 변경 결과 확인 true -> false
+> ss.switches(0)
+["0x92e735452e40569f21299138965de184b67bd401", 1557828046, false]
 
-ss.withdrawFunds.sendTransaction({from:eth.accounts[0], gas:5000000})
+이더 수납 (서비스 소유자는 계약이 갖고 있던 이더를 가저간다)
+> ss.withdrawFunds.sendTransaction({from:eth.accounts[0], gas:5000000})
+"0xb5e1e449739da3265d82ad7d2b1646c41d68519b08280f81e5c1f97df9a733a8"
 
-web3.fromWei(eth.getBalance(ss.address),"ether")
+계약 잔액 확인 : 0
+> web3.fromWei(eth.getBalance(ss.address),"ether")
+0
 ```
