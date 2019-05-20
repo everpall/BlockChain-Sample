@@ -1,0 +1,90 @@
+### 11.2 TOD
+> 거래가 블록에 저장되는 순서는 채굴자가 결정하므로, 의도하지 않은 순서로 거래가 실행되는 경우가 있다.
+> 이러한 문제를 TOD(Transaction-Ordering Dependence)라고 한다.
+
+### 원리
+> MarketPlaceTOD.sol
+> 예제 코드는 마켓 플레이스를 구현한 스마트 계약이다.
+> 판매자가 계약을 생성하고 구매자가 거래를 발행하면 구매가 이루어진다.
+> 계약은 물품 단가를 상태에 저장하고 있으며, 팜매자가 updatePrice함수를 통해 단가를 수정할 수 있다.
+> 구매자는 이더 송금과 함께 buy함수를 호출하는 방식으로 물품을 구매할 수 있다.
+> buy 함수가 인자로 받은 단가 * 구매개수의 값보다 송금액이 커야하며, 재고가 존재해야 구매가 이루어짐
+
+```c
+pragma solidity ^0.4.11;
+contract MarketPlaceTOD {
+	address public owner;
+	uint public price;	// 단가
+	uint public stockQuantity;	// 재고 수
+	
+	modifier onlyOwner() {
+		require(msg.sender == owner);
+		_;
+	}
+	
+	event UpdatePrice(uint _price);
+	event Buy(uint _price, uint _quantity, uint _value, uint _change);
+	
+	/// 생성자
+	constructor() public{
+		owner = msg.sender;
+		price = 1;
+		stockQuantity = 100;
+	}
+	
+	/// 단가 업데이트
+	function updatePrice(uint _price) public onlyOwner {
+		price = _price;
+		emit UpdatePrice(price);
+	}
+
+	/// 구매 처리
+	function buy(uint _quantity) public payable {
+		if (msg.value < _quantity * price || _quantity > stockQuantity) {
+			revert();
+		}
+		
+		// 거스름돈 송금
+		if(!msg.sender.send(msg.value - _quantity * price)) {
+			revert();	
+		}
+		
+		stockQuantity -= _quantity;
+		emit Buy(price, _quantity, msg.value, msg.value - _quantity * price);
+	}	
+}
+```
+
+* 각 계정의 역할
+  * eth.accounts[0] : 판매자 (계약 소유자)
+  * eth.accounts[1] : 구매자
+  
+```
+> mpt.price()
+1
+
+> mpt.stockQuantity()
+100
+
+정상적인 경우 (gasPrice에 주목)
+> mpt.buy.sendTransaction(10, {from:eth.accounts[1], gas:5000000, gasPrice:90000000000, value:web3.toWei(100,"wei")})
+> mpt.updatePrice.sendTransaction(2, {from:eth.accounts[0], gas:5000000, gasPrice:80000000000})
+
+--------------------ver2----------------
+
+비정상적인 경우 (gasPrice에 주목)
+
+> mpt.buy.sendTransaction(10, {from:eth.accounts[1], gas:5000000, gasPrice:80000000000, value:web3.toWei(100,"wei")})
+> mpt.updatePrice.sendTransaction(3, {from:eth.accounts[0], gas:5000000, gasPrice:90000000000})
+ 
+```
+> 정상적인 거래의 경우 : 225p 그림 11-7
+> buy 와 updatePrice를 거의 동시에 실행하면 gasPrice에 따라서 transaction 인증 순서가 바뀔 수 있다. 
+> 즉.. 2원주고 산줄알았는데 3원에 계산이 되버릴 수 있다는 것이다. (226p 그림 11-8 참조)
+> 이를 자동화 하면 성공확률은 더 올라간다. (예를들어 web3에서 watch 라는 함수를 사용하여 매 순간 거래 이벤트 탐지, 그에 따른 동작)
+> 나의 Etherium Wallet 에서는 이벤트 로그를 확인할 수 없어서 정확인 로그를 보여줄 수 없었다.
+
+### 어떻게 대응할 것인가?
+일반적으로 거래를 발행하는 어드레스가 같은 경우에는 일반적으로 TOD 문제가 발생하지 않는다.
+거래에는 계정과 연결된 논스가 포함되어 있기 때문에 거래를 발행할 때마다 논스가 1씩 증가한다.
+(책에는 따로 구체적으로 나오지 않음. 단지 사전에 문제를 점검하기를 원함)
