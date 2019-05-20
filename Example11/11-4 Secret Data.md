@@ -78,6 +78,7 @@ contract Secret {
 > web3.toAscii("0x6e616973796f");
 "naisyo"
 
+<input>
 0x
 7ed6c926( Method ID : setSecret )
 0000000000000000000000000000000000000000000000000000000000000020 (32byte offset)
