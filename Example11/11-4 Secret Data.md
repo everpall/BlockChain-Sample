@@ -23,6 +23,7 @@ contract Secret {
 
 거래의 Transaction 해시값 확인하기
 > 계약 생성자의 인자로 'himitsu'문자열 지정하기
+secret 데이터는 private 임!
 
 생성한 거래의 input 필드 확인
 
